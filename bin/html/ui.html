@@ -81,7 +81,7 @@ function playSelectedMacro(fileName){
     console.error('Macro playback placeholder failed:',error.message);
   }
 }
-jsonList.addEventListener('change',()=>{updateMacroPlaceholder();statusEl.textContent=jsonList.value?'Loaded: '+jsonList.value:'Ready'});
+jsonList.addEventListener('change',()=>{updateMacroPlaceholder();try{chrome.webview.hostObjects.sync.SetSelectedMacro(jsonList.value)}catch(e){}statusEl.textContent=jsonList.value?'Loaded: '+jsonList.value:'Ready'});
 function readSelectedMacro(){
   if(!jsonList.value) throw new Error('Select a macro before pressing Start.');
   const raw=chrome.webview.hostObjects.sync.ReadMacro(jsonList.value);
