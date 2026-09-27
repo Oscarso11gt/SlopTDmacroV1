@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>Slop TD macro - Settings</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;background:#0d0f13;color:#f4f4f5;font-family:Segoe UI,Arial,sans-serif}
+.panel{padding:18px;display:flex;flex-direction:column;gap:10px}
+h2{margin:0;font-size:18px}label{font-size:12px;color:#b8c0ce;font-weight:600}
+input{width:100%;height:36px;padding:7px 9px;border:1px solid #3a4352;border-radius:6px;background:#171a20;color:#fff;font-size:12px}
+.buttons{display:flex;gap:8px}button{flex:1;height:34px;border:0;border-radius:6px;background:#5865f2;color:#fff;font-weight:700;cursor:pointer}button:hover{background:#6874ff}
+#status{min-height:18px;color:#aeb8c8;font-size:12px}.check{display:flex;align-items:center;gap:8px;color:#d7deea;font-size:12px}.check input{width:16px;height:16px;accent-color:#5865f2}
+</style>
+</head>
+<body><main class="panel">
+<h2>Settings</h2>
+<label class="check"><input id="enabled" type="checkbox">Enabled</label>
+<label for="webhookUrl">Webhook URL</label>
+<input id="webhookUrl" type="url" placeholder="https://discord.com/api/webhooks/...">
+<label class="check"><input id="screenshotRewards" type="checkbox">Screenshot Rewards</label>
+<div class="buttons"><button id="save">Save</button><button id="test">Test</button></div>
+<div id="status" role="status"></div>
+<script>
+const url=document.getElementById('webhookUrl'), enabled=document.getElementById('enabled'), screenshotRewards=document.getElementById('screenshotRewards'), status=document.getElementById('status');
+try{const settings=JSON.parse(chrome.webview.hostObjects.sync.GetWebhookSettings());url.value=settings.url||'';enabled.checked=!!settings.enabled;screenshotRewards.checked=!!settings.screenshotRewards;}catch(error){status.textContent='Settings load error: '+error.message;}
+function call(name){
+  try{
+    const result=name==='TestWebhook'
+      ? chrome.webview.hostObjects.sync.TestWebhook(url.value.trim())
+      : chrome.webview.hostObjects.sync.SaveWebhookSettings(url.value.trim(),enabled.checked,screenshotRewards.checked);
+    status.textContent=result;
+  }catch(error){status.textContent='Settings error: '+error.message;}
+}
+document.getElementById('save').addEventListener('click',()=>call('SaveWebhookSettings'));
+document.getElementById('test').addEventListener('click',()=>call('TestWebhook'));
+</script>
+</main></body>
+</html>

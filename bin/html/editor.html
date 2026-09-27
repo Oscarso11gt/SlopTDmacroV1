@@ -1,0 +1,273 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Slop TD macro - Editor</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101214;color:#f4f4f5;font-family:Inter,Segoe UI,Arial,sans-serif}
+.editor{width:100%;height:100%;padding:8px;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+button{min-width:0;border:0;border-radius:2px;padding:6px 7px;background:#212834;color:#fff;font-weight:700;font-size:11px;line-height:16px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button:hover{background:#212834}button.selected,.placement-list button.selected{background:#5865f2}.header{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px}.header input{min-width:0;height:30px;padding:5px 8px;font-size:13px}.header input::placeholder{color:#9aa3b2;opacity:1}
+.tabs,.actions{display:flex;gap:5px;min-width:0}.tabs button{flex:1;background:#5865f2}.body{display:grid;grid-template-columns:132px minmax(0,1fr) 178px;gap:7px;flex:1;min-height:0}
+.column,.panel{display:flex;flex-direction:column;gap:4px;min-width:0}.column h4,.panel h4{margin:0;padding:1px;text-align:center;font-size:10px;line-height:15px;color:#e8edf9}
+.canvas{display:flex;flex-direction:column;gap:5px;min-width:0}.canvas h4{margin:0;text-align:center}.placement-list{border:1px solid #555;background:#0d0f13;padding:7px;display:flex;flex-direction:column;gap:5px;overflow-y:auto;min-height:0;flex:1}.placement-list button{text-align:left;background:#212834}.placement-list button.selected{background:#5865f2}.spacer{flex:1;min-height:0}
+.actions,.unit-grid{display:grid;gap:5px;min-width:0}.actions{grid-template-columns:1fr}.ritual-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.upgrade-actions{grid-template-columns:repeat(3,minmax(0,1fr))}.sell-row{display:flex;align-items:stretch;width:100%;gap:5px;min-height:30px}.sell-row .coord-input{flex:1 1 auto;width:auto;height:30px;min-width:0}.sell-row input[type="checkbox"]{width:auto;height:auto;margin:0}.sell-row .sell-toggle{display:flex;align-items:center;justify-content:center;flex:0 0 30px;width:30px;height:30px;padding:0;margin:0;gap:0}.unit-grid{grid-template-columns:repeat(6,minmax(0,1fr))}.unit-grid button{aspect-ratio:1/1;padding:0;line-height:1}
+.actions button{padding-left:4px;padding-right:4px}.upgrade-actions button{padding-left:2px;padding-right:2px}.footer{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto auto auto auto;gap:5px;align-items:center}.footer button{width:100%;padding-left:6px;padding-right:6px}.footer .set-window-button{min-width:96px}.footer .add-button{width:48px;padding-left:4px;padding-right:4px}.footer .delete-button{width:58px;padding-left:4px;padding-right:4px}.footer .upgrade-button{width:70px;padding-left:4px;padding-right:4px}.coord-input{width:52px;height:30px;padding:3px 4px;background:#212834;color:#fff;border:0;border-radius:2px;font:700 11px Segoe UI,Arial,sans-serif}.auto-add{display:flex;align-items:center;gap:3px;color:#e8edf9;font-size:10px;font-weight:700;white-space:nowrap}.auto-add input{accent-color:#5865f2}
+@media (min-width:700px){.editor{padding:12px;gap:10px}button{padding:8px 12px;font-size:12px}.header{gap:8px}.header input{height:34px}.actions,.unit-grid{gap:6px}.body{grid-template-columns:190px minmax(0,1fr) 230px;gap:10px}.column,.panel{gap:6px}.column h4,.panel h4{font-size:12px;line-height:normal;padding:2px}.canvas{padding:10px;gap:8px}.footer{gap:6px}.footer .add-button{width:56px}.footer .delete-button{width:66px}.footer .upgrade-button{width:78px}.coord-input{width:62px;height:34px;font-size:12px}.sell-row .coord-input{width:auto;height:34px;font-size:12px}.auto-add{font-size:11px}}
+</style></head><body><main class="editor">
+<div class="header"><input id="macroName" placeholder="Name" aria-label="Macro name"><button id="saveMacro">Save</button><button id="loadMacro">Load</button></div>
+<div class="body">
+<section class="column"><h4>MUTATOR</h4><div class="actions"><button data-selection-group="mutator" data-mutator="Speedrun">Mutator 1</button><button data-selection-group="mutator" data-mutator="Tiny Slop Blackout">Mutator 2</button><button data-selection-group="mutator" data-mutator="Mutator 3">Mutator 3</button><button data-selection-group="mutator" data-mutator="No Mutator">Mutator 4</button></div></section>
+<section class="canvas"><h4>PLACEMENT</h4><div class="placement-list" role="listbox" aria-label="Placement items"></div></section>
+<section class="panel"><h4>RITUALS</h4><div class="actions ritual-actions"><button data-toggle-group="rituals">Zoom</button><button data-toggle-group="rituals">Look Down</button></div><button class="replicate-button" type="button">Replicate</button><h4>SPEED</h4><button data-cycle-group="speed" data-cycle-max="5">1x</button><h4>UNIT SELECTION</h4><div class="unit-grid"><button data-selection-group="unit-selection">1</button><button data-selection-group="unit-selection">2</button><button data-selection-group="unit-selection">3</button><button data-selection-group="unit-selection">4</button><button data-selection-group="unit-selection">5</button><button data-selection-group="unit-selection">6</button></div><h4>UPGRADE</h4><div class="actions upgrade-actions"><button data-selection-group="upgrade">Yes</button><button data-selection-group="upgrade">No</button><button data-selection-group="upgrade">Sell</button></div><h4>AUTO SELL</h4><div class="sell-row"><input id="autoSellSeconds" class="coord-input" aria-label="Auto sell seconds" placeholder="Seconds" type="number" min="1" step="1" value="0"><label class="auto-add sell-toggle" title="Auto Sell"><input id="autoSellEnabled" type="checkbox" aria-label="Auto Sell"></label></div></section>
+</div><div class="footer"><button class="set-window-button" type="button">Set window</button><input id="coordX" class="coord-input" aria-label="X coordinate" placeholder="X" type="number" min="0" step="1" value="0"><input id="coordY" class="coord-input" aria-label="Y coordinate" placeholder="Y" type="number" min="0" step="1" value="0"><button class="add-button">Add</button><button class="delete-button">Delete</button><button class="upgrade-button">Update</button><label class="auto-add" title="Automatically add a placement when C captures coordinates"><input id="autoAdd" type="checkbox" aria-label="Automatic placement"></label></div>
+<script>
+document.addEventListener('contextmenu',(event)=>event.preventDefault(),true);
+document.querySelectorAll('button[data-selection-group]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const group = button.dataset.selectionGroup;
+    document.querySelectorAll(`button[data-selection-group="${group}"].selected`).forEach((item) => {
+      item.classList.remove('selected');
+      item.setAttribute('aria-selected', 'false');
+    });
+    button.classList.add('selected');
+    button.setAttribute('aria-selected', 'true');
+  });
+});
+function setUnitSelection(unit) {
+  const key = String(unit);
+  const unitButton = [...document.querySelectorAll('button[data-selection-group="unit-selection"]')]
+    .find((button) => button.textContent.trim() === key);
+  if (!unitButton) return false;
+  document.querySelectorAll('button[data-selection-group="unit-selection"].selected').forEach((item) => {
+    item.classList.remove('selected');
+    item.setAttribute('aria-selected', 'false');
+  });
+  unitButton.classList.add('selected');
+  unitButton.setAttribute('aria-selected', 'true');
+  return true;
+}
+window.setUnitSelection = setUnitSelection;
+document.addEventListener('keydown', (event) => {
+  if (event.ctrlKey || event.altKey || event.metaKey || ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName)) return;
+  if (!/^[1-6]$/.test(event.key)) return;
+  if (setUnitSelection(event.key)) event.preventDefault();
+});
+document.querySelectorAll('button[data-toggle-group]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const enabled = button.classList.toggle('selected');
+    button.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+  });
+});
+document.querySelectorAll('button[data-cycle-group]').forEach((button) => {
+  button.addEventListener('click', () => {
+    const maximum = Number(button.dataset.cycleMax);
+    const current = Number(button.dataset.value || '1');
+    const next = current >= maximum ? 1 : current + 1;
+    button.dataset.value = String(next);
+    button.textContent = `${next}x`;
+  });
+});
+const placementList = document.querySelector('.placement-list');
+let placementEntries = [];
+let selectedEntryIndex = -1;
+function selectedIndex(group) {
+  return [...document.querySelectorAll(`button[data-selection-group="${group}"]`)]
+    .findIndex((button) => button.classList.contains('selected'));
+}
+function selectionText(group) {
+  const button = document.querySelector(`button[data-selection-group="${group}"].selected`);
+  return button ? button.textContent : '';
+}
+function selectedMutator() {
+  const button = document.querySelector('button[data-selection-group="mutator"].selected');
+  return button ? button.dataset.mutator : 'No Mutator';
+}
+function showIssue(message) {
+  try {
+    chrome.webview.hostObjects.sync.ShowEditorIssue(message);
+  } catch (error) {
+    alert(`Issue: ${message}`);
+  }
+}
+function entryFromControls() {
+  const unitIndex = selectedIndex('unit-selection');
+  const upgradeIndex = selectedIndex('upgrade');
+  const xValue = document.getElementById('coordX').value.trim();
+  const yValue = document.getElementById('coordY').value.trim();
+  const missing = [];
+  if (unitIndex < 0) missing.push('No Unit Selected.');
+  if (upgradeIndex < 0) missing.push('No Upgrade Selected.');
+  if (xValue === '' || yValue === '' || !Number.isFinite(Number(xValue)) || !Number.isFinite(Number(yValue))) {
+    missing.push('Invalid X/Y coordinates.');
+  }
+  if (missing.length) {
+    showIssue(`Unable to add: Missing the following parameters:
+
+- ${missing.join('\n- ')}`);
+    return;
+  }
+  return {
+    upgrade: selectionText('upgrade'),
+    x: Number(xValue),
+    y: Number(yValue),
+    unit: selectionText('unit-selection')
+  };
+}
+
+function entryLabel(entry) {
+  return `${entry.upgrade} | X:${entry.x} Y:${entry.y} | Unit ${entry.unit}`;
+}
+function renderEntries() {
+  placementList.replaceChildren();
+  placementEntries.forEach((entry, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = entryLabel(entry);
+    button.dataset.entryIndex = String(index);
+    button.classList.toggle('selected', index === selectedEntryIndex);
+    button.addEventListener('click', () => {
+      selectedEntryIndex = index;
+      loadEntryIntoControls(placementEntries[index]);
+      renderEntries();
+    });
+    placementList.append(button);
+  });
+}
+function loadEntryIntoControls(entry) {
+  [['unit-selection', entry.unit], ['upgrade', entry.upgrade]].forEach(([group, value]) => {
+    document.querySelectorAll(`button[data-selection-group="${group}"]`).forEach((button) => {
+      const selected = button.textContent === value;
+      button.classList.toggle('selected', selected);
+      button.setAttribute('aria-selected', selected ? 'true' : 'false');
+    });
+  });
+  document.getElementById('coordX').value = entry.x;
+  document.getElementById('coordY').value = entry.y;
+}
+function addEntry() {
+  const entry = entryFromControls();
+  if (!entry) return;
+  placementEntries.push(entry);
+  selectedEntryIndex = placementEntries.length - 1;
+  renderEntries();
+}
+document.querySelector('.add-button').addEventListener('click', addEntry);
+document.querySelector('.delete-button').addEventListener('click', () => {
+  if (selectedEntryIndex < 0) return showIssue('select a placement entry to delete');
+  placementEntries.splice(selectedEntryIndex, 1);
+  selectedEntryIndex = Math.min(selectedEntryIndex, placementEntries.length - 1);
+  renderEntries();
+});
+document.querySelector('.upgrade-button').addEventListener('click', () => {
+  if (selectedEntryIndex < 0) return showIssue('select a placement entry to update');
+  const entry = entryFromControls();
+  if (!entry) return;
+  placementEntries[selectedEntryIndex] = entry;
+  renderEntries();
+});
+document.querySelector('.set-window-button').addEventListener('click', () => {
+  try {
+    const result = chrome.webview.hostObjects.sync.SetRobloxWindow();
+    if (result !== 'Roblox window set to 974x638') showIssue(result || 'Could not set Roblox window');
+  } catch (error) {
+    showIssue(`Could not set Roblox window: ${error.message}`);
+  }
+});
+document.querySelector('.replicate-button').addEventListener('click', () => {
+  const toggles = document.querySelectorAll('[data-toggle-group="rituals"]');
+  const zoom = toggles[0].classList.contains('selected');
+  const lookDown = toggles[1].classList.contains('selected');
+  try {
+    const result = chrome.webview.hostObjects.sync.ReplicateRituals(zoom, lookDown);
+    if (result !== 'Replicated') showIssue(result || 'Ritual replication failed');
+  } catch (error) {
+    showIssue(`Ritual replication failed: ${error.message}`);
+  }
+});
+function collectMacro() {
+  const autoSellEnabled = document.getElementById('autoSellEnabled').checked;
+  const autoSellSeconds = Math.max(0, Math.floor(Number(document.getElementById('autoSellSeconds').value) || 0));
+  return {
+    version: '1.0.78',
+    name: document.getElementById('macroName').value.trim() || 'Macro',
+    reset: true,
+    zoom: document.querySelectorAll('[data-toggle-group="rituals"]')[0].classList.contains('selected'),
+    lookDown: document.querySelectorAll('[data-toggle-group="rituals"]')[1].classList.contains('selected'),
+    mutator: selectedMutator(),
+    speed: Number(document.querySelector('[data-cycle-group="speed"]').dataset.value || '1'),
+    // The launcher still accepts this legacy field.  Multi-account controls
+    // are no longer shown, so editor-created macros always use one account.
+    robloxAccounts: 1,
+    autoSellEnabled: autoSellEnabled,
+    autoSellSeconds: autoSellSeconds,
+    entries: placementEntries
+  };
+}
+window.applyMacro = (macro) => {
+  if (!macro || typeof macro !== 'object') return;
+  document.getElementById('macroName').value = macro.name || '';
+  const toggles = document.querySelectorAll('[data-toggle-group="rituals"]');
+  toggles[0].classList.toggle('selected', macro.zoom === true);
+  toggles[0].setAttribute('aria-pressed', macro.zoom === true ? 'true' : 'false');
+  toggles[1].classList.toggle('selected', macro.lookDown === true);
+  toggles[1].setAttribute('aria-pressed', macro.lookDown === true ? 'true' : 'false');
+  document.querySelectorAll('[data-selection-group="mutator"]').forEach((button) => {
+    const legacyMutators = {'Armored Slop':'Tiny Slop Blackout','Boss Rush':'Mutator 3'};
+    const mutator = legacyMutators[macro.mutator] || macro.mutator || 'No Mutator';
+    const selected = button.dataset.mutator === mutator;
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-selected', selected ? 'true' : 'false');
+  });
+  const cycles = [
+    ['speed', 5, macro.speed]
+  ];
+  cycles.forEach(([group, maximum, rawValue]) => {
+    const button = document.querySelector(`[data-cycle-group="${group}"]`);
+    const value = Math.min(maximum, Math.max(1, Number(rawValue) || 1));
+    button.dataset.value = String(value);
+    button.textContent = `${value}x`;
+  });
+  document.getElementById('autoSellSeconds').value = Math.max(0, Math.floor(Number(macro.autoSellSeconds) || 0));
+  document.getElementById('autoSellEnabled').checked = macro.autoSellEnabled === true || macro.autoSellEnabled === 1 || macro.autoSellEnabled === 'true';
+  placementEntries = Array.isArray(macro.entries)
+    ? macro.entries.filter((entry) => entry && typeof entry === 'object').map(({ upgrade, x, y, unit }) => ({ upgrade, x, y, unit }))
+    : [];
+  selectedEntryIndex = -1;
+  renderEntries();
+};
+document.getElementById('autoAdd').addEventListener('change', (event) => {
+  try {
+    chrome.webview.hostObjects.sync.SetEditorAutoAdd(event.target.checked);
+  } catch (error) {
+    event.target.checked = false;
+    showIssue(`Auto C could not be enabled: ${error.message}`);
+  }
+});
+window.captureCoordinatesFromHost = () => {
+  try {
+    const raw = chrome.webview.hostObjects.sync.CaptureEditorCoordinates();
+    if (!raw) return;
+    const coords = JSON.parse(raw);
+    document.getElementById('coordX').value = coords.x;
+    document.getElementById('coordY').value = coords.y;
+    if (document.getElementById('autoAdd').checked) addEntry();
+  } catch (error) {
+    console.error('Coordinate capture failed', error);
+  }
+};
+document.getElementById('saveMacro').addEventListener('click', () => {
+  try {
+    const result = chrome.webview.hostObjects.sync.SaveMacro(JSON.stringify(collectMacro()));
+    if (result !== 'Saved') alert(result || 'Macro save failed');
+  } catch (error) {
+    alert(`Macro save failed: ${error.message}`);
+  }
+});
+document.getElementById('loadMacro').addEventListener('click', () => {
+  try {
+    const result = chrome.webview.hostObjects.sync.LoadMacro();
+    if (result === 'Load failed') alert(result);
+  } catch (error) {
+    alert(`Macro load failed: ${error.message}`);
+  }
+});
+</script>
+</main></body></html>

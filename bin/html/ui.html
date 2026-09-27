@@ -1,0 +1,146 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Slop TD macro</title>
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:#0d0f13;color:#f4f4f5;font-family:Inter,Segoe UI,Arial,sans-serif}
+body{padding:0;overflow:auto}
+.panel{display:flex;flex-direction:column;gap:8px;padding:8px;min-height:100%}
+.statusbar{background:#171a20;border:1px solid #2a3038;border-radius:8px;padding:8px 10px;color:#e8edf9;font-size:12px;font-weight:600;min-height:28px;display:flex;align-items:center;justify-content:center}
+.version{color:#8f99aa;font-size:10px;text-align:center}
+select{width:100%;height:34px;border:1px solid #2a3038;border-radius:8px;background:#fff;color:#171a20;padding:6px 10px;font-size:12px;outline:none}
+.macro-select{position:relative}
+.macro-placeholder{position:absolute;top:0;left:0;right:0;height:34px;padding:9px 10px;color:#8f99aa;font-size:12px;pointer-events:none}
+.toolbar{display:flex;flex-direction:column;gap:8px;flex:1}
+button{width:100%;border:0;border-radius:10px;padding:10px 12px;background:#5865f2;color:#fff;font-weight:700;cursor:pointer;font-size:13px;line-height:1.2}
+button:hover{background:#6874ff}
+button.secondary{background:#212834}
+button.secondary:hover{background:#2a3544}
+</style>
+</head>
+<body>
+<div class="panel">
+  <div class="macro-select"><select id="jsonList" aria-label="Macro file"></select><span id="macroPlaceholder" class="macro-placeholder">Select Macro..</span></div>
+  <div class="statusbar" id="status">Ready</div>
+  <div class="toolbar">
+    <button id="playBtn">Start (F8)</button>
+    <button id="editorBtn" class="secondary">Editor</button>
+    <button id="settingsBtn" class="secondary">Settings</button>
+  </div>
+  <div class="version">Version 1.0 Beta</div>
+</div>
+<script>
+document.addEventListener('contextmenu',(event)=>event.preventDefault(),true);
+const MAX_LOOK=900, MAX_ZOOM=30;
+const jsonList=document.getElementById('jsonList'), statusEl=document.getElementById('status'), playBtn=document.getElementById('playBtn');
+const macroPlaceholder=document.getElementById('macroPlaceholder');
+let isRunning=false;
+function updateMacroPlaceholder(){macroPlaceholder.hidden=!!jsonList.value;}
+function refreshMacroList(){
+  try{
+    const selected=jsonList.value;
+    const files=JSON.parse(chrome.webview.hostObjects.sync.ListMacros());
+    jsonList.replaceChildren();
+    files.forEach(file=>{
+      const option=document.createElement('option');
+      option.value=file;
+      option.textContent=file;
+      jsonList.append(option);
+    });
+    if(files.includes(selected)) jsonList.value=selected;
+    else jsonList.value='';
+    updateMacroPlaceholder();
+  }catch(error){
+    statusEl.textContent='Macro list unavailable: '+error.message;
+  }
+}
+function playSelectedMacro(fileName){
+  if(!fileName) return;
+  try{
+    const macro=JSON.parse(chrome.webview.hostObjects.sync.ReadMacro(fileName));
+    const placements=Array.isArray(macro.entries)?macro.entries:[];
+    const lines=[
+      'Macro playback placeholder',
+      'Robloxs: '+(macro.robloxAccounts??'Not set'),
+      'Speed: '+(macro.speed??'Not set'),
+      'Zoom: '+(macro.zoom===true?'Enabled':'Disabled'),
+      'Look Down: '+(macro.lookDown===true?'Enabled':'Disabled'),
+      'Placements: ['
+    ];
+    placements.forEach((placement,index)=>{
+      lines.push('    Placement '+(index+1)+': Unit='+placement.unit+', Upgrade='+placement.upgrade+', X='+placement.x+', Y='+placement.y);
+    });
+    lines.push(']');
+    const formatted=lines.join('\n');
+    console.log(formatted);
+    chrome.webview.hostObjects.sync.LogMacro(formatted);
+  }catch(error){
+    console.error('Macro playback placeholder failed:',error.message);
+  }
+}
+jsonList.addEventListener('change',()=>{updateMacroPlaceholder();statusEl.textContent=jsonList.value?'Loaded: '+jsonList.value:'Ready'});
+function readSelectedMacro(){
+  if(!jsonList.value) throw new Error('Select a macro before pressing Start.');
+  const raw=chrome.webview.hostObjects.sync.ReadMacro(jsonList.value);
+  if(!raw) throw new Error('The selected macro file could not be read.');
+  const macro=JSON.parse(raw);
+  if(!macro||typeof macro!=='object'||Array.isArray(macro)) throw new Error('Macro must contain a JSON object.');
+  macro.reset=macro.reset!==false;
+  macro.mutator=macro.mutator||'No Mutator';
+  if(!['Speedrun','Tiny Slop Blackout','Mutator 3','No Mutator'].includes(macro.mutator)) throw new Error('Macro mutator is not supported.');
+  if(typeof macro.zoom!=='boolean') throw new Error('Macro zoom must be true or false.');
+  if(typeof macro.lookDown!=='boolean') throw new Error('Macro lookDown must be true or false.');
+  if(!Number.isInteger(macro.speed)||macro.speed<1||macro.speed>5) throw new Error('Macro speed must be an integer from 1 to 5.');
+  // `robloxAccounts` is a retired setting.  Older macros may contain it, but
+  // editor-created macros since its removal do not, so use the only supported
+  // value when it is absent.
+  if(macro.robloxAccounts===undefined||macro.robloxAccounts===null) macro.robloxAccounts=1;
+  if(!Number.isInteger(macro.robloxAccounts)||macro.robloxAccounts<1||macro.robloxAccounts>4) throw new Error('Macro robloxAccounts must be an integer from 1 to 4.');
+  if(!Array.isArray(macro.entries)) throw new Error('Macro entries must be an array.');
+  macro.entries.forEach((entry,index)=>{
+    if(!entry||typeof entry!=='object') throw new Error(`Placement ${index+1} must be an object.`);
+    if(typeof entry.upgrade!=='string'||typeof entry.unit!=='string') throw new Error(`Placement ${index+1} is missing upgrade or unit.`);
+    if(!Number.isFinite(entry.x)||!Number.isFinite(entry.y)) throw new Error(`Placement ${index+1} must have numeric X and Y coordinates.`);
+  });
+  return macro;
+}
+function stopMacro(){
+  try{chrome.webview.hostObjects.sync.StopCamera();}
+  catch(e){statusEl.textContent='Stop unavailable: '+e.message;return}
+  isRunning=false;
+  playBtn.textContent='Start (F8)';
+  playBtn.style.background='';
+  statusEl.textContent='Stopped';
+}
+function sendRunAction(){
+  if(isRunning){stopMacro();return}
+  let macro;
+  try{macro=readSelectedMacro()}catch(error){statusEl.textContent='Macro error: '+error.message;return}
+  isRunning=true; playBtn.textContent='Stop (F8)'; playBtn.style.background='#ed4245'; statusEl.textContent='Start pressed';
+  try{chrome.webview.hostObjects.sync.RunCamera(macro.reset,macro.lookDown,macro.zoom,macro.speed,macro.mutator,JSON.stringify(macro.entries),macro.autoSellEnabled===true||macro.autoSellEnabled===1||macro.autoSellEnabled==='true',Math.max(0,Math.floor(Number(macro.autoSellSeconds)||0)))}catch(e){isRunning=false;playBtn.textContent='Start (F8)';playBtn.style.background='';statusEl.textContent='Start unavailable: '+e.message+' (use F8)'}
+}
+// The click handler below is the single toggle path.  Stopping on
+// pointer-down set isRunning false before the following click arrived, which
+// made that click immediately start the macro again.
+playBtn.addEventListener('click',sendRunAction);
+document.getElementById('editorBtn').addEventListener('click',()=>{try{chrome.webview.hostObjects.sync.OpenEditor()}catch(e){statusEl.textContent='Editor unavailable: '+e.message}});
+document.getElementById('settingsBtn').addEventListener('click',()=>{try{chrome.webview.hostObjects.sync.OpenSettings()}catch(e){statusEl.textContent='Settings unavailable: '+e.message}});
+function notifyContentSize(){try{const h=Math.ceil(Math.max(document.body.scrollHeight,document.documentElement.scrollHeight));chrome.webview.hostObjects.sync.ResizeWindow(h)}catch(e){}}
+window.addEventListener('load',()=>{notifyContentSize();refreshMacroList();
+  // The macro list only changes when the editor saves a file, and each refresh
+  // is a synchronous host call that has to wait for the script (which cannot
+  // answer while it is inside an ImageSearch/PixelSearch). Polling it every
+  // second made the whole window hitch during playback, so it now refreshes
+  // rarely, when the window regains focus, and when the list is opened.
+  setInterval(refreshMacroList,5000);
+  window.addEventListener('focus',refreshMacroList);
+  document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshMacroList()});
+  jsonList.addEventListener('mousedown',refreshMacroList);
+  jsonList.addEventListener('focus',refreshMacroList);}); new ResizeObserver(notifyContentSize).observe(document.body);
+if(window.chrome&&window.chrome.webview)window.chrome.webview.addEventListener('message',e=>{try{const m=typeof e.data==='string'?JSON.parse(e.data):e.data;if(m.type==='status'){statusEl.textContent=m.text;if(['Done','Stopped','Ready'].includes(m.text)||m.text.includes('not found')){isRunning=false;playBtn.textContent='Start (F8)';playBtn.style.background=''}else if(m.text.startsWith('Starting')||m.text.startsWith('Found ')||m.text.startsWith('Account ')){isRunning=true;playBtn.textContent='Stop (F8)';playBtn.style.background='#ed4245'}}}catch(e){}});
+</script>
+</body>
+</html>
