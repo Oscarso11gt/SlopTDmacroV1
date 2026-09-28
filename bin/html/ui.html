@@ -30,7 +30,7 @@ button.secondary:hover{background:#2a3544}
     <button id="editorBtn" class="secondary">Editor</button>
     <button id="settingsBtn" class="secondary">Settings</button>
   </div>
-  <div class="version">v1.0.1</div>
+  <div class="version">v1.0.3</div>
 </div>
 <script>
 document.addEventListener('contextmenu',(event)=>event.preventDefault(),true);
@@ -140,7 +140,7 @@ window.addEventListener('load',()=>{notifyContentSize();refreshMacroList();
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshMacroList()});
   jsonList.addEventListener('mousedown',refreshMacroList);
   jsonList.addEventListener('focus',refreshMacroList);}); new ResizeObserver(notifyContentSize).observe(document.body);
-if(window.chrome&&window.chrome.webview)window.chrome.webview.addEventListener('message',e=>{try{const m=typeof e.data==='string'?JSON.parse(e.data):e.data;if(m.type==='status'){statusEl.textContent=m.text;if(['Done','Stopped','Ready'].includes(m.text)||m.text.includes('not found')){isRunning=false;playBtn.textContent='Start (F8)';playBtn.style.background=''}else if(m.text.startsWith('Starting')||m.text.startsWith('Found ')||m.text.startsWith('Account ')){isRunning=true;playBtn.textContent='Stop (F8)';playBtn.style.background='#ed4245'}}}catch(e){}});
+if(window.chrome&&window.chrome.webview)window.chrome.webview.addEventListener('message',e=>{try{const m=typeof e.data==='string'?JSON.parse(e.data):e.data;if(m.type==='status'){statusEl.textContent=m.text;if(['Done','Stopped','Ready'].includes(m.text)||m.text.includes('not found')){isRunning=false;playBtn.textContent='Start (F8)';playBtn.style.background=''}else if(/^(Waiting for game|Roblox |Starting|Setting |Placing |Upgrading |Selecting |Auto Sell |Selling |Game Ended |Found |Account )/.test(m.text)){isRunning=true;playBtn.textContent='Stop (F8)';playBtn.style.background='#ed4245'}}}catch(e){}});
 </script>
 </body>
 </html>
