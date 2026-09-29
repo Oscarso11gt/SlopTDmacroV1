@@ -17,17 +17,18 @@ input{width:100%;height:36px;padding:7px 9px;border:1px solid #3a4352;border-rad
 <label class="check"><input id="enabled" type="checkbox">Enabled</label>
 <label for="webhookUrl">Webhook URL</label>
 <input id="webhookUrl" type="url" placeholder="https://discord.com/api/webhooks/...">
+<label class="check"><input id="textUpdates" type="checkbox" checked>Text status updates</label>
 <label class="check"><input id="screenshotRewards" type="checkbox">Screenshot Rewards</label>
 <div class="buttons"><button id="save">Save</button><button id="test">Test</button></div>
 <div id="status" role="status"></div>
 <script>
-const url=document.getElementById('webhookUrl'), enabled=document.getElementById('enabled'), screenshotRewards=document.getElementById('screenshotRewards'), status=document.getElementById('status');
-try{const settings=JSON.parse(chrome.webview.hostObjects.sync.GetWebhookSettings());url.value=settings.url||'';enabled.checked=!!settings.enabled;screenshotRewards.checked=!!settings.screenshotRewards;}catch(error){status.textContent='Settings load error: '+error.message;}
+const url=document.getElementById('webhookUrl'), enabled=document.getElementById('enabled'), textUpdates=document.getElementById('textUpdates'), screenshotRewards=document.getElementById('screenshotRewards'), status=document.getElementById('status');
+try{const settings=JSON.parse(chrome.webview.hostObjects.sync.GetWebhookSettings());url.value=settings.url||'';enabled.checked=!!settings.enabled;textUpdates.checked=settings.textUpdates!==false;screenshotRewards.checked=!!settings.screenshotRewards;}catch(error){status.textContent='Settings load error: '+error.message;}
 function call(name){
   try{
     const result=name==='TestWebhook'
       ? chrome.webview.hostObjects.sync.TestWebhook(url.value.trim())
-      : chrome.webview.hostObjects.sync.SaveWebhookSettings(url.value.trim(),enabled.checked,screenshotRewards.checked);
+      : chrome.webview.hostObjects.sync.SaveWebhookSettings(url.value.trim(),enabled.checked,screenshotRewards.checked,textUpdates.checked);
     status.textContent=result;
   }catch(error){status.textContent='Settings error: '+error.message;}
 }
