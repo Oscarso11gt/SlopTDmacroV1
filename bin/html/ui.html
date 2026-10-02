@@ -30,7 +30,7 @@ button.secondary:hover{background:#2a3544}
     <button id="editorBtn" class="secondary">Editor</button>
     <button id="settingsBtn" class="secondary">Settings</button>
   </div>
-    <div class="version">v1.11</div>
+    <div class="version">v1.12</div>
 </div>
 <script>
 document.addEventListener('contextmenu',(event)=>event.preventDefault(),true);
@@ -67,11 +67,12 @@ function playSelectedMacro(fileName){
       'Robloxs: '+(macro.robloxAccounts??'Not set'),
       'Speed: '+(macro.speed??'Not set'),
       'Zoom: '+(macro.zoom===true?'Enabled':'Disabled'),
-      'Look Down: '+(macro.lookDown===true?'Enabled':'Disabled'),
+      'Look Down: '+(macro.mode==='Raids'?'Per raid map':(macro.lookDown===true?'Enabled':'Disabled')),
+      'Camera Rotation: '+(macro.cameraRotation??0)+'°',
       'Placements: ['
     ];
     placements.forEach((placement,index)=>{
-      lines.push('    Placement '+(index+1)+': Unit='+placement.unit+', Upgrade='+placement.upgrade+', X='+placement.x+', Y='+placement.y);
+      lines.push(placement.upgrade==='Rotate'?'    Placement '+(index+1)+': Rotate '+placement.rotation+'°':'    Placement '+(index+1)+': Unit='+placement.unit+', Upgrade='+placement.upgrade+', X='+placement.x+', Y='+placement.y);
     });
     lines.push(']');
     const formatted=lines.join('\n');
@@ -93,6 +94,8 @@ function readSelectedMacro(){
   if(!['Speedrun','Tiny Slop Blackout','Mutator 3','No Mutator'].includes(macro.mutator)) throw new Error('Macro mutator is not supported.');
   if(typeof macro.zoom!=='boolean') throw new Error('Macro zoom must be true or false.');
   if(typeof macro.lookDown!=='boolean') throw new Error('Macro lookDown must be true or false.');
+  macro.cameraRotation=Number(macro.cameraRotation??0);
+  if(![0,90,180,270].includes(macro.cameraRotation)) throw new Error('Macro cameraRotation must be 0, 90, 180 or 270.');
   if(!Number.isInteger(macro.speed)||macro.speed<1||macro.speed>5) throw new Error('Macro speed must be an integer from 1 to 5.');
   // `robloxAccounts` is a retired setting.  Older macros may contain it, but
   // editor-created macros since its removal do not, so use the only supported
@@ -100,11 +103,28 @@ function readSelectedMacro(){
   if(macro.robloxAccounts===undefined||macro.robloxAccounts===null) macro.robloxAccounts=1;
   if(!Number.isInteger(macro.robloxAccounts)||macro.robloxAccounts<1||macro.robloxAccounts>4) throw new Error('Macro robloxAccounts must be an integer from 1 to 4.');
   if(!Array.isArray(macro.entries)) throw new Error('Macro entries must be an array.');
-  macro.entries.forEach((entry,index)=>{
-    if(!entry||typeof entry!=='object') throw new Error(`Placement ${index+1} must be an object.`);
-    if(typeof entry.upgrade!=='string'||typeof entry.unit!=='string') throw new Error(`Placement ${index+1} is missing upgrade or unit.`);
-    if(!Number.isFinite(entry.x)||!Number.isFinite(entry.y)) throw new Error(`Placement ${index+1} must have numeric X and Y coordinates.`);
+  const validateEntries=(entries,label)=>entries.forEach((entry,index)=>{
+    if(!entry||typeof entry!=='object') throw new Error(`${label} placement ${index+1} must be an object.`);
+    if(entry.upgrade==='Rotate'){
+      if(![90,180,270].includes(entry.rotation)) throw new Error(`${label} rotation ${index+1} must be 90, 180 or 270 degrees.`);
+      return;
+    }
+    if(typeof entry.upgrade!=='string'||typeof entry.unit!=='string') throw new Error(`${label} placement ${index+1} is missing upgrade or unit.`);
+    if(!Number.isFinite(entry.x)||!Number.isFinite(entry.y)) throw new Error(`${label} placement ${index+1} must have numeric X and Y coordinates.`);
   });
+  validateEntries(macro.entries,'Casual');
+  macro.mode=macro.mode==='Raids'?'Raids':'Casual';
+  if(macro.mode==='Raids'){
+    if(!Array.isArray(macro.raidMaps)||macro.raidMaps.length!==4) throw new Error('Raid macro must have four map placement lists.');
+    macro.raidMaps.forEach((entries,index)=>{
+      if(!Array.isArray(entries)) throw new Error(`Map ${index+1} placements must be an array.`);
+      validateEntries(entries,`Map ${index+1}`);
+    });
+    if(macro.raidLookDown===undefined) macro.raidLookDown=Array(4).fill(macro.lookDown);
+    if(!Array.isArray(macro.raidLookDown)||macro.raidLookDown.length!==4||macro.raidLookDown.some((value)=>typeof value!=='boolean')){
+      throw new Error('Raid Look Down must have one true/false setting for each map.');
+    }
+  }
   return macro;
 }
 function stopMacro(){
@@ -120,7 +140,7 @@ function sendRunAction(){
   let macro;
   try{macro=readSelectedMacro()}catch(error){statusEl.textContent='Macro error: '+error.message;return}
   isRunning=true; playBtn.textContent='Stop (F8)'; playBtn.style.background='#ed4245'; statusEl.textContent='Start pressed';
-  try{chrome.webview.hostObjects.sync.RunCamera(macro.reset,macro.lookDown,macro.zoom,macro.speed,macro.mutator,JSON.stringify(macro.entries),macro.autoSellEnabled===true||macro.autoSellEnabled===1||macro.autoSellEnabled==='true',Math.max(0,Math.floor(Number(macro.autoSellSeconds)||0)))}catch(e){isRunning=false;playBtn.textContent='Start (F8)';playBtn.style.background='';statusEl.textContent='Start unavailable: '+e.message+' (use F8)'}
+  try{chrome.webview.hostObjects.sync.RunCamera(macro.reset,macro.lookDown,macro.zoom,macro.speed,macro.mutator,JSON.stringify(macro.entries),macro.autoSellEnabled===true||macro.autoSellEnabled===1||macro.autoSellEnabled==='true',Math.max(0,Math.floor(Number(macro.autoSellSeconds)||0)),macro.cameraRotation,macro.mode,JSON.stringify(macro.raidMaps||[]),JSON.stringify(macro.raidLookDown||[]))}catch(e){isRunning=false;playBtn.textContent='Start (F8)';playBtn.style.background='';statusEl.textContent='Start unavailable: '+e.message+' (use F8)'}
 }
 // The click handler below is the single toggle path.  Stopping on
 // pointer-down set isRunning false before the following click arrived, which
@@ -140,7 +160,7 @@ window.addEventListener('load',()=>{notifyContentSize();refreshMacroList();
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshMacroList()});
   jsonList.addEventListener('mousedown',refreshMacroList);
   jsonList.addEventListener('focus',refreshMacroList);}); new ResizeObserver(notifyContentSize).observe(document.body);
-if(window.chrome&&window.chrome.webview)window.chrome.webview.addEventListener('message',e=>{try{const m=typeof e.data==='string'?JSON.parse(e.data):e.data;if(m.type==='status'){statusEl.textContent=m.text;if(['Done','Stopped','Ready'].includes(m.text)||m.text.includes('not found')){isRunning=false;playBtn.textContent='Start (F8)';playBtn.style.background=''}else if(/^(Waiting for game|Roblox |Starting|Setting |Placing |Upgrading |Selecting |Auto Sell |Selling |Game Ended |Found |Account )/.test(m.text)){isRunning=true;playBtn.textContent='Stop (F8)';playBtn.style.background='#ed4245'}}}catch(e){}});
+if(window.chrome&&window.chrome.webview)window.chrome.webview.addEventListener('message',e=>{try{const m=typeof e.data==='string'?JSON.parse(e.data):e.data;if(m.type==='status'){statusEl.textContent=m.text;if(['Done','Stopped','Ready'].includes(m.text)||m.text.includes('not found')){isRunning=false;playBtn.textContent='Start (F8)';playBtn.style.background=''}else if(/^(Waiting for game|Roblox |Starting|Setting |Placing |Rotating |Upgrading |Selecting |Auto Sell |Selling |Game Ended |Found |Account )/.test(m.text)){isRunning=true;playBtn.textContent='Stop (F8)';playBtn.style.background='#ed4245'}}}catch(e){}});
 </script>
 </body>
 </html>

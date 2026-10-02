@@ -7,16 +7,17 @@ button{min-width:0;border:0;border-radius:2px;padding:6px 7px;background:#212834
 button:hover{background:#212834}button.selected,.placement-list button.selected{background:#5865f2}.header{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:6px}.header input{min-width:0;height:30px;padding:5px 8px;font-size:13px}.header input::placeholder{color:#9aa3b2;opacity:1}
 .tabs,.actions{display:flex;gap:5px;min-width:0}.tabs button{flex:1;background:#5865f2}.body{display:grid;grid-template-columns:132px minmax(0,1fr) 178px;gap:7px;flex:1;min-height:0}
 .column,.panel{display:flex;flex-direction:column;gap:4px;min-width:0}.column h4,.panel h4{margin:0;padding:1px;text-align:center;font-size:10px;line-height:15px;color:#e8edf9}
-.canvas{display:flex;flex-direction:column;gap:5px;min-width:0}.canvas h4{margin:0;text-align:center}.placement-list{border:1px solid #555;background:#0d0f13;padding:7px;display:flex;flex-direction:column;gap:5px;overflow-y:auto;min-height:0;flex:1}.placement-list button{text-align:left;background:#212834}.placement-list button.selected{background:#5865f2}.spacer{flex:1;min-height:0}
-.actions,.unit-grid{display:grid;gap:5px;min-width:0}.actions{grid-template-columns:1fr}.ritual-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.upgrade-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.sell-row{display:flex;align-items:stretch;width:100%;gap:5px;min-height:30px}.sell-row .coord-input{flex:1 1 auto;width:auto;height:30px;min-width:0}.sell-row input[type="checkbox"]{width:auto;height:auto;margin:0}.sell-row .sell-toggle{display:flex;align-items:center;justify-content:center;flex:0 0 30px;width:30px;height:30px;padding:0;margin:0;gap:0}.unit-grid{grid-template-columns:repeat(6,minmax(0,1fr))}.unit-grid button{aspect-ratio:1/1;padding:0;line-height:1}
+.canvas{display:flex;flex-direction:column;gap:5px;min-width:0}.canvas h4{margin:0;text-align:center}.placement-list{border:1px solid #555;background:#0d0f13;padding:7px;display:flex;flex-direction:column;gap:5px;overflow-y:auto;min-height:0;flex:1}.placement-list button{text-align:left;background:#212834}.placement-list button.selected{background:#5865f2}.spacer{flex:1;min-height:0}.map-row{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}.map-row[hidden]{display:none}
+.actions,.unit-grid{display:grid;gap:5px;min-width:0}.actions{grid-template-columns:1fr}.ritual-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.rotation-row{grid-column:1/-1;display:flex;gap:5px;min-width:0}.rotation-row button{flex:0 0 auto}.ritual-rotation{flex:1;min-width:0;height:30px;border:0;border-radius:2px;padding:4px 7px;background:#212834;color:#fff;font:700 11px Segoe UI,Arial,sans-serif}.upgrade-actions{grid-template-columns:repeat(2,minmax(0,1fr))}.sell-row{display:flex;align-items:stretch;width:100%;gap:5px;min-height:30px}.sell-row .coord-input{flex:1 1 auto;width:auto;height:30px;min-width:0}.sell-row input[type="checkbox"]{width:auto;height:auto;margin:0}.sell-row .sell-toggle{display:flex;align-items:center;justify-content:center;flex:0 0 30px;width:30px;height:30px;padding:0;margin:0;gap:0}.unit-grid{grid-template-columns:repeat(6,minmax(0,1fr))}.unit-grid button{aspect-ratio:1/1;padding:0;line-height:1}
 .actions button{padding-left:4px;padding-right:4px}.upgrade-actions button{padding-left:2px;padding-right:2px}.footer{display:grid;grid-template-columns:minmax(0,1fr) auto auto auto auto auto auto;gap:5px;align-items:center}.footer button{width:100%;padding-left:6px;padding-right:6px}.footer .set-window-button{min-width:96px}.footer .add-button{width:48px;padding-left:4px;padding-right:4px}.footer .delete-button{width:58px;padding-left:4px;padding-right:4px}.footer .upgrade-button{width:70px;padding-left:4px;padding-right:4px}.coord-input{width:52px;height:30px;padding:3px 4px;background:#212834;color:#fff;border:0;border-radius:2px;font:700 11px Segoe UI,Arial,sans-serif}.auto-add{display:flex;align-items:center;gap:3px;color:#e8edf9;font-size:10px;font-weight:700;white-space:nowrap}.auto-add input{accent-color:#5865f2}
+button.raid-zoom-locked.selected,button.raid-zoom-locked.selected:hover{background:#4b535f;color:#e4e7eb;cursor:not-allowed;opacity:.72}
 @media (min-width:700px){.editor{padding:12px;gap:10px}button{padding:8px 12px;font-size:12px}.header{gap:8px}.header input{height:34px}.actions,.unit-grid{gap:6px}.body{grid-template-columns:190px minmax(0,1fr) 230px;gap:10px}.column,.panel{gap:6px}.column h4,.panel h4{font-size:12px;line-height:normal;padding:2px}.canvas{padding:10px;gap:8px}.footer{gap:6px}.footer .add-button{width:56px}.footer .delete-button{width:66px}.footer .upgrade-button{width:78px}.coord-input{width:62px;height:34px;font-size:12px}.sell-row .coord-input{width:auto;height:34px;font-size:12px}.auto-add{font-size:11px}}
 </style></head><body><main class="editor">
 <div class="header"><input id="macroName" placeholder="Name" aria-label="Macro name"><button id="saveMacro">Save</button><button id="loadMacro">Load</button></div>
 <div class="body">
-<section class="column"><h4>MUTATOR</h4><div class="actions"><button data-selection-group="mutator" data-mutator="Speedrun">Mutator 1</button><button data-selection-group="mutator" data-mutator="Tiny Slop Blackout">Mutator 2</button><button data-selection-group="mutator" data-mutator="Mutator 3">Mutator 3</button><button data-selection-group="mutator" data-mutator="No Mutator">No Mutator</button></div></section>
-<section class="canvas"><h4>PLACEMENT</h4><div class="placement-list" role="listbox" aria-label="Placement items"></div></section>
-<section class="panel"><h4>RITUALS</h4><div class="actions ritual-actions"><button data-toggle-group="rituals">Zoom</button><button data-toggle-group="rituals">Look Down</button></div><button class="replicate-button" type="button">Replicate</button><h4>SPEED</h4><button data-cycle-group="speed" data-cycle-max="5">1x</button><h4>UNIT SELECTION</h4><div class="unit-grid"><button data-selection-group="unit-selection">1</button><button data-selection-group="unit-selection">2</button><button data-selection-group="unit-selection">3</button><button data-selection-group="unit-selection">4</button><button data-selection-group="unit-selection">5</button><button data-selection-group="unit-selection">6</button></div><h4>UPGRADE</h4><div class="actions upgrade-actions"><button data-selection-group="upgrade">Yes</button><button data-selection-group="upgrade">No</button><button type="button" data-existing-action="Upgrade">Upgrade</button><button type="button" data-existing-action="Sell">Sell</button></div><h4>AUTO SELL</h4><div class="sell-row"><input id="autoSellSeconds" class="coord-input" aria-label="Auto sell seconds" placeholder="Seconds" type="number" min="1" step="1" value="0"><label class="auto-add sell-toggle" title="Auto Sell"><input id="autoSellEnabled" type="checkbox" aria-label="Auto Sell"></label></div></section>
+<section class="column"><h4>MODES</h4><div class="actions"><button type="button" id="modeButton">CASUAL</button></div><h4>MUTATOR</h4><div class="actions"><button data-selection-group="mutator" data-mutator="Speedrun">Mutator 1</button><button data-selection-group="mutator" data-mutator="Tiny Slop Blackout">Mutator 2</button><button data-selection-group="mutator" data-mutator="Mutator 3">Mutator 3</button><button data-selection-group="mutator" data-mutator="No Mutator">No Mutator</button></div></section>
+<section class="canvas"><h4>PLACEMENT</h4><div class="placement-list" role="listbox" aria-label="Placement items"></div><div class="map-row" id="mapRow" hidden><button type="button" id="fetchMap">Fetch Map</button><button type="button" id="cycleMap" aria-label="Selected raid map: Map 1">Map 1</button></div></section>
+<section class="panel"><h4>RITUALS</h4><div class="actions ritual-actions"><button data-toggle-group="rituals">Zoom</button><button data-toggle-group="rituals">Look Down</button><div class="rotation-row"><select id="cameraRotation" class="ritual-rotation" aria-label="Camera rotation"><option value="0">Rotation 0°</option><option value="90">Rotation 90°</option><option value="180">Rotation 180°</option><option value="270">Rotation 270°</option></select><button type="button" id="addRotation">Add</button></div></div><button class="replicate-button" type="button">Replicate</button><h4>SPEED</h4><button data-cycle-group="speed" data-cycle-max="5">1x</button><h4>UNIT SELECTION</h4><div class="unit-grid"><button data-selection-group="unit-selection">1</button><button data-selection-group="unit-selection">2</button><button data-selection-group="unit-selection">3</button><button data-selection-group="unit-selection">4</button><button data-selection-group="unit-selection">5</button><button data-selection-group="unit-selection">6</button></div><h4>UPGRADE</h4><div class="actions upgrade-actions"><button data-selection-group="upgrade">Yes</button><button data-selection-group="upgrade">No</button><button type="button" data-existing-action="Upgrade">Upgrade</button><button type="button" data-existing-action="Sell">Sell</button></div><h4>AUTO SELL</h4><div class="sell-row"><input id="autoSellSeconds" class="coord-input" aria-label="Auto sell seconds" placeholder="Seconds" type="number" min="1" step="1" value="0"><label class="auto-add sell-toggle" title="Auto Sell"><input id="autoSellEnabled" type="checkbox" aria-label="Auto Sell"></label></div></section>
 </div><div class="footer"><button class="set-window-button" type="button">Set window</button><input id="coordX" class="coord-input" aria-label="X coordinate" placeholder="X" type="number" min="0" step="1" value="0"><input id="coordY" class="coord-input" aria-label="Y coordinate" placeholder="Y" type="number" min="0" step="1" value="0"><button class="add-button">Add</button><button class="delete-button">Delete</button><button class="upgrade-button">Update</button><label class="auto-add" title="Automatically add a placement when C captures coordinates"><input id="autoAdd" type="checkbox" aria-label="Automatic placement"></label></div>
 <script>
 document.addEventListener('contextmenu',(event)=>event.preventDefault(),true);
@@ -50,10 +51,17 @@ document.addEventListener('keydown', (event) => {
   if (!/^[1-6]$/.test(event.key)) return;
   if (setUnitSelection(event.key)) event.preventDefault();
 });
+const zoomToggle = document.querySelector('[data-toggle-group="rituals"]');
+const lookDownToggle = document.querySelectorAll('[data-toggle-group="rituals"]')[1];
 document.querySelectorAll('button[data-toggle-group]').forEach((button) => {
   button.addEventListener('click', () => {
     const enabled = button.classList.toggle('selected');
     button.setAttribute('aria-pressed', enabled ? 'true' : 'false');
+    if (button === zoomToggle) casualZoomEnabled = enabled;
+    if (button === lookDownToggle) {
+      if (macroMode === 'Raids') raidLookDown[raidMapIndex] = enabled;
+      else casualLookDownEnabled = enabled;
+    }
   });
 });
 document.querySelectorAll('button[data-cycle-group]').forEach((button) => {
@@ -66,8 +74,41 @@ document.querySelectorAll('button[data-cycle-group]').forEach((button) => {
   });
 });
 const placementList = document.querySelector('.placement-list');
-let placementEntries = [];
+let casualEntries = [];
+let raidMaps = [[], [], [], []];
+let raidMapIndex = 0;
+let macroMode = 'Casual';
+let casualZoomEnabled = false;
+let casualLookDownEnabled = false;
+let raidLookDown = [false, false, false, false];
+let placementEntries = casualEntries;
 let selectedEntryIndex = -1;
+window.applyQuickCameraShortcut = (action) => {
+  if (action === 'zoomOut') {
+    if (macroMode !== 'Raids') casualZoomEnabled = true;
+    zoomToggle.classList.add('selected');
+    zoomToggle.setAttribute('aria-pressed', 'true');
+  } else if (action === 'lookDown') {
+    if (macroMode === 'Raids') raidLookDown[raidMapIndex] = true;
+    else casualLookDownEnabled = true;
+    lookDownToggle.classList.add('selected');
+    lookDownToggle.setAttribute('aria-pressed', 'true');
+  }
+};
+document.addEventListener('keydown', (event) => {
+  if (event.repeat || event.ctrlKey || event.altKey || event.metaKey ||
+      ['INPUT', 'TEXTAREA', 'SELECT'].includes(event.target.tagName) || event.target.isContentEditable ||
+      !['[', ']'].includes(event.key)) return;
+  event.preventDefault();
+  const action = event.key === '[' ? 'zoomOut' : 'lookDown';
+  try {
+    const result = chrome.webview.hostObjects.sync.QuickEditorCamera(action);
+    if (result === 'Done') window.applyQuickCameraShortcut(action);
+    else showIssue(result || 'Editor camera shortcut failed');
+  } catch (error) {
+    showIssue(`Editor camera shortcut failed: ${error.message}`);
+  }
+});
 function selectedIndex(group) {
   return [...document.querySelectorAll(`button[data-selection-group="${group}"]`)]
     .findIndex((button) => button.classList.contains('selected'));
@@ -113,6 +154,7 @@ function entryFromControls() {
 }
 
 function entryLabel(entry) {
+  if (entry.upgrade === 'Rotate') return `Rotate | ${entry.rotation}°`;
   return `${entry.upgrade} | X:${entry.x} Y:${entry.y} | Unit ${entry.unit}`;
 }
 function renderEntries() {
@@ -132,6 +174,10 @@ function renderEntries() {
   });
 }
 function loadEntryIntoControls(entry) {
+  if (entry.upgrade === 'Rotate') {
+    document.getElementById('cameraRotation').value = String(entry.rotation);
+    return;
+  }
   [['unit-selection', entry.unit], ['upgrade', entry.upgrade]].forEach(([group, value]) => {
     document.querySelectorAll(`button[data-selection-group="${group}"]`).forEach((button) => {
       const selected = button.textContent === value;
@@ -158,11 +204,89 @@ document.querySelector('.delete-button').addEventListener('click', () => {
 });
 document.querySelector('.upgrade-button').addEventListener('click', () => {
   if (selectedEntryIndex < 0) return showIssue('select a placement entry to update');
-  const entry = entryFromControls();
+  const entry = placementEntries[selectedEntryIndex].upgrade === 'Rotate' ? rotationEntryFromControls() : entryFromControls();
   if (!entry) return;
   placementEntries[selectedEntryIndex] = entry;
   renderEntries();
 });
+function rotationEntryFromControls() {
+  const rotation = Number(document.getElementById('cameraRotation').value || '0');
+  if (![90, 180, 270].includes(rotation)) {
+    showIssue('Pick Rotation 90°, 180° or 270° to add a rotation.');
+    return;
+  }
+  return {upgrade: 'Rotate', rotation};
+}
+document.getElementById('addRotation').addEventListener('click', () => {
+  const entry = rotationEntryFromControls();
+  if (!entry) return;
+  placementEntries.push(entry);
+  selectedEntryIndex = placementEntries.length - 1;
+  renderEntries();
+  try {
+    const result = chrome.webview.hostObjects.sync.QuickEditorCamera('rotate', entry.rotation);
+    if (result !== 'Done') showIssue(result || 'Could not replicate rotation');
+  } catch (error) {
+    showIssue(`Could not replicate rotation: ${error.message}`);
+  }
+});
+function activateEntries() {
+  const raidZoomLocked = macroMode === 'Raids';
+  zoomToggle.disabled = raidZoomLocked;
+  zoomToggle.classList.toggle('selected', raidZoomLocked || casualZoomEnabled);
+  zoomToggle.classList.toggle('raid-zoom-locked', raidZoomLocked);
+  zoomToggle.setAttribute('aria-pressed', raidZoomLocked || casualZoomEnabled ? 'true' : 'false');
+  zoomToggle.textContent = raidZoomLocked ? 'Zoom ✓' : 'Zoom';
+  zoomToggle.title = raidZoomLocked ? 'Raid zoom is automatic; press [ to zoom out now' : 'Press [ to zoom out now';
+  lookDownToggle.title = 'Press ] to look down now';
+  const lookDownEnabled = raidZoomLocked ? raidLookDown[raidMapIndex] : casualLookDownEnabled;
+  lookDownToggle.classList.toggle('selected', lookDownEnabled);
+  lookDownToggle.setAttribute('aria-pressed', lookDownEnabled ? 'true' : 'false');
+  placementEntries = macroMode === 'Raids' ? raidMaps[raidMapIndex] : casualEntries;
+  selectedEntryIndex = -1;
+  document.getElementById('modeButton').textContent = macroMode.toUpperCase();
+  document.getElementById('mapRow').hidden = macroMode !== 'Raids';
+  const cycleMap = document.getElementById('cycleMap');
+  cycleMap.textContent = `Map ${raidMapIndex + 1}`;
+  cycleMap.setAttribute('aria-label', `Selected raid map: Map ${raidMapIndex + 1}. Click to cycle maps.`);
+  cycleMap.classList.toggle('selected', macroMode === 'Raids');
+  renderEntries();
+}
+document.getElementById('modeButton').addEventListener('click', () => {
+  macroMode = macroMode === 'Raids' ? 'Casual' : 'Raids';
+  activateEntries();
+});
+document.getElementById('cycleMap').addEventListener('click', () => {
+  raidMapIndex = (raidMapIndex + 1) % raidMaps.length;
+  activateEntries();
+});
+document.getElementById('fetchMap').addEventListener('click', () => {
+  const button = document.getElementById('fetchMap');
+  button.disabled = true;
+  button.textContent = 'Fetching...';
+  try {
+    const cameraRotation = Number(document.getElementById('cameraRotation').value || '0');
+    const result = chrome.webview.hostObjects.sync.FetchRaidMap(JSON.stringify(raidLookDown), cameraRotation);
+    const mapNumber = Number(result);
+    if (!Number.isInteger(mapNumber) || mapNumber < 1 || mapNumber > raidMaps.length) {
+      showIssue(result || 'Raid map could not be identified');
+      return;
+    }
+    raidMapIndex = mapNumber - 1;
+    activateEntries();
+  } catch (error) {
+    showIssue(`Raid map fetch failed: ${error.message}`);
+  } finally {
+    button.disabled = false;
+    button.textContent = 'Fetch Map';
+  }
+});
+function normalizeEntries(list) {
+  if (!Array.isArray(list)) return [];
+  return list.filter((entry) => entry && typeof entry === 'object').map((entry) => entry.upgrade === 'Rotate'
+    ? {upgrade: 'Rotate', rotation: Number(entry.rotation)}
+    : {upgrade: entry.upgrade, x: entry.x, y: entry.y, unit: entry.unit});
+}
 function addExistingUnitAction(action) {
   if (selectedEntryIndex < 0) return showIssue(`Select an existing unit before using ${action}.`);
   const target = placementEntries[selectedEntryIndex];
@@ -193,8 +317,11 @@ document.querySelector('.replicate-button').addEventListener('click', () => {
   const toggles = document.querySelectorAll('[data-toggle-group="rituals"]');
   const zoom = toggles[0].classList.contains('selected');
   const lookDown = toggles[1].classList.contains('selected');
+  const cameraRotation = Number(document.getElementById('cameraRotation').value || '0');
   try {
-    const result = chrome.webview.hostObjects.sync.ReplicateRituals(zoom, lookDown);
+    const result = macroMode === 'Raids'
+      ? chrome.webview.hostObjects.sync.ReplicateRituals(zoom, lookDown, cameraRotation, macroMode)
+      : chrome.webview.hostObjects.sync.ReplicateRituals(zoom, lookDown, cameraRotation);
     if (result !== 'Replicated') showIssue(result || 'Ritual replication failed');
   } catch (error) {
     showIssue(`Ritual replication failed: ${error.message}`);
@@ -207,8 +334,9 @@ function collectMacro() {
     version: '1.0.78',
     name: document.getElementById('macroName').value.trim() || 'Macro',
     reset: true,
-    zoom: document.querySelectorAll('[data-toggle-group="rituals"]')[0].classList.contains('selected'),
-    lookDown: document.querySelectorAll('[data-toggle-group="rituals"]')[1].classList.contains('selected'),
+    zoom: casualZoomEnabled,
+    lookDown: macroMode === 'Raids' ? raidLookDown[0] : casualLookDownEnabled,
+    mode: macroMode,
     mutator: selectedMutator(),
     speed: Number(document.querySelector('[data-cycle-group="speed"]').dataset.value || '1'),
     // The launcher still accepts this legacy field.  Multi-account controls
@@ -216,17 +344,20 @@ function collectMacro() {
     robloxAccounts: 1,
     autoSellEnabled: autoSellEnabled,
     autoSellSeconds: autoSellSeconds,
-    entries: placementEntries
+    entries: casualEntries,
+    raidMaps: raidMaps,
+    raidLookDown: raidLookDown
   };
 }
 window.applyMacro = (macro) => {
   if (!macro || typeof macro !== 'object') return;
   document.getElementById('macroName').value = macro.name || '';
   const toggles = document.querySelectorAll('[data-toggle-group="rituals"]');
-  toggles[0].classList.toggle('selected', macro.zoom === true);
-  toggles[0].setAttribute('aria-pressed', macro.zoom === true ? 'true' : 'false');
-  toggles[1].classList.toggle('selected', macro.lookDown === true);
-  toggles[1].setAttribute('aria-pressed', macro.lookDown === true ? 'true' : 'false');
+  casualZoomEnabled = macro.zoom === true;
+  casualLookDownEnabled = macro.lookDown === true;
+  raidLookDown = [0, 1, 2, 3].map((index) => Array.isArray(macro.raidLookDown) && typeof macro.raidLookDown[index] === 'boolean'
+    ? macro.raidLookDown[index] : casualLookDownEnabled);
+  document.getElementById('cameraRotation').value = '0';
   document.querySelectorAll('[data-selection-group="mutator"]').forEach((button) => {
     const legacyMutators = {'Armored Slop':'Tiny Slop Blackout','Boss Rush':'Mutator 3'};
     const mutator = legacyMutators[macro.mutator] || macro.mutator || 'No Mutator';
@@ -245,11 +376,14 @@ window.applyMacro = (macro) => {
   });
   document.getElementById('autoSellSeconds').value = Math.max(0, Math.floor(Number(macro.autoSellSeconds) || 0));
   document.getElementById('autoSellEnabled').checked = macro.autoSellEnabled === true || macro.autoSellEnabled === 1 || macro.autoSellEnabled === 'true';
-  placementEntries = Array.isArray(macro.entries)
-    ? macro.entries.filter((entry) => entry && typeof entry === 'object').map(({ upgrade, x, y, unit }) => ({ upgrade, x, y, unit }))
-    : [];
-  selectedEntryIndex = -1;
-  renderEntries();
+  casualEntries = normalizeEntries(macro.entries);
+  // Older macros kept one rotation for the rituals; it now lives in the placement list.
+  const legacyRotation = Number(macro.cameraRotation);
+  if ([90, 180, 270].includes(legacyRotation)) casualEntries.unshift({upgrade: 'Rotate', rotation: legacyRotation});
+  raidMaps = [0, 1, 2, 3].map((index) => normalizeEntries(Array.isArray(macro.raidMaps) ? macro.raidMaps[index] : []));
+  macroMode = macro.mode === 'Raids' ? 'Raids' : 'Casual';
+  raidMapIndex = 0;
+  activateEntries();
 };
 document.getElementById('autoAdd').addEventListener('change', (event) => {
   try {
@@ -273,7 +407,7 @@ window.captureCoordinatesFromHost = () => {
 };
 document.getElementById('saveMacro').addEventListener('click', () => {
   try {
-    const result = chrome.webview.hostObjects.sync.SaveMacro(JSON.stringify(collectMacro()));
+    const result = chrome.webview.hostObjects.sync.SaveMacro(JSON.stringify(collectMacro(), null, 2) + '\n');
     if (result !== 'Saved') alert(result || 'Macro save failed');
   } catch (error) {
     alert(`Macro save failed: ${error.message}`);
