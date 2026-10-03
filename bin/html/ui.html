@@ -114,6 +114,8 @@ function readSelectedMacro(){
   });
   validateEntries(macro.entries,'Casual');
   macro.mode=macro.mode==='Raids'?'Raids':'Casual';
+  macro.dieAfterMapChange=macro.mode==='Raids'&&macro.dieAfterMapChange===true;
+  macro.readyBeforePlacement=macro.mode==='Raids'&&!macro.dieAfterMapChange&&macro.readyBeforePlacement===true;
   if(macro.mode==='Raids'){
     if(!Array.isArray(macro.raidMaps)||macro.raidMaps.length!==4) throw new Error('Raid macro must have four map placement lists.');
     macro.raidMaps.forEach((entries,index)=>{
@@ -140,7 +142,7 @@ function sendRunAction(){
   let macro;
   try{macro=readSelectedMacro()}catch(error){statusEl.textContent='Macro error: '+error.message;return}
   isRunning=true; playBtn.textContent='Stop (F8)'; playBtn.style.background='#ed4245'; statusEl.textContent='Start pressed';
-  try{chrome.webview.hostObjects.sync.RunCamera(macro.reset,macro.lookDown,macro.zoom,macro.speed,macro.mutator,JSON.stringify(macro.entries),macro.autoSellEnabled===true||macro.autoSellEnabled===1||macro.autoSellEnabled==='true',Math.max(0,Math.floor(Number(macro.autoSellSeconds)||0)),macro.cameraRotation,macro.mode,JSON.stringify(macro.raidMaps||[]),JSON.stringify(macro.raidLookDown||[]))}catch(e){isRunning=false;playBtn.textContent='Start (F8)';playBtn.style.background='';statusEl.textContent='Start unavailable: '+e.message+' (use F8)'}
+  try{chrome.webview.hostObjects.sync.RunCamera(macro.reset,macro.lookDown,macro.zoom,macro.speed,macro.mutator,JSON.stringify(macro.entries),macro.autoSellEnabled===true||macro.autoSellEnabled===1||macro.autoSellEnabled==='true',Math.max(0,Math.floor(Number(macro.autoSellSeconds)||0)),macro.cameraRotation,macro.mode,JSON.stringify(macro.raidMaps||[]),JSON.stringify(macro.raidLookDown||[]),macro.dieAfterMapChange,macro.readyBeforePlacement)}catch(e){isRunning=false;playBtn.textContent='Start (F8)';playBtn.style.background='';statusEl.textContent='Start unavailable: '+e.message+' (use F8)'}
 }
 // The click handler below is the single toggle path.  Stopping on
 // pointer-down set isRunning false before the following click arrived, which
