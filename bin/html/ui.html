@@ -10,6 +10,7 @@ html,body{margin:0;min-height:100%;background:#0d0f13;color:#f4f4f5;font-family:
 body{padding:0;overflow:auto}
 .panel{display:flex;flex-direction:column;gap:8px;padding:8px;min-height:100%}
 .statusbar{background:#171a20;border:1px solid #2a3038;border-radius:8px;padding:8px 10px;color:#e8edf9;font-size:12px;font-weight:600;min-height:28px;display:flex;align-items:center;justify-content:center}
+.map-badge{flex:none;background:#5865f2;color:#fff;border-radius:5px;padding:3px 6px;margin-right:6px;font-size:10px;line-height:1}
 .version{color:#8f99aa;font-size:10px;text-align:center}
 select{width:100%;height:34px;border:1px solid #2a3038;border-radius:8px;background:#fff;color:#171a20;padding:6px 10px;font-size:12px;outline:none}
 .macro-select{position:relative}
@@ -24,18 +25,18 @@ button.secondary:hover{background:#2a3544}
 <body>
 <div class="panel">
   <div class="macro-select"><select id="jsonList" aria-label="Macro file"></select><span id="macroPlaceholder" class="macro-placeholder">Select Macro..</span></div>
-  <div class="statusbar" id="status">Ready</div>
+  <div class="statusbar" id="status"><span class="map-badge" id="raidMapStatus" hidden></span><span id="statusText">Ready</span></div>
   <div class="toolbar">
     <button id="playBtn">Start (F8)</button>
     <button id="editorBtn" class="secondary">Editor</button>
     <button id="settingsBtn" class="secondary">Settings</button>
   </div>
-    <div class="version">v1.12</div>
+    <div class="version">v1.13</div>
 </div>
 <script>
 document.addEventListener('contextmenu',(event)=>event.preventDefault(),true);
 const MAX_LOOK=900, MAX_ZOOM=30;
-const jsonList=document.getElementById('jsonList'), statusEl=document.getElementById('status'), playBtn=document.getElementById('playBtn');
+const jsonList=document.getElementById('jsonList'), statusEl=document.getElementById('statusText'), mapStatusEl=document.getElementById('raidMapStatus'), playBtn=document.getElementById('playBtn');
 const macroPlaceholder=document.getElementById('macroPlaceholder');
 let isRunning=false;
 function updateMacroPlaceholder(){macroPlaceholder.hidden=!!jsonList.value;}
@@ -91,7 +92,12 @@ function readSelectedMacro(){
   if(!macro||typeof macro!=='object'||Array.isArray(macro)) throw new Error('Macro must contain a JSON object.');
   macro.reset=macro.reset!==false;
   macro.mutator=macro.mutator||'No Mutator';
+  // No Mutator selected in the editor: vote the No Mutator card and ignore the priority.
+  // Lists saved before that button existed meant the same when they ranked No Mutator first.
+  if(macro.noMutator===undefined&&Array.isArray(macro.mutatorPriority)&&macro.mutatorPriority[0]==='No Mutator') macro.noMutator=true;
+  if(macro.noMutator===true){macro.mutator='No Mutator';macro.mutatorPriority=[];}
   if(!['Speedrun','Tiny Slop Blackout','Mutator 3','No Mutator'].includes(macro.mutator)) throw new Error('Macro mutator is not supported.');
+  if(macro.mutatorPriority!==undefined&&(!Array.isArray(macro.mutatorPriority)||macro.mutatorPriority.some((name)=>typeof name!=='string'))) throw new Error('Macro mutator priority must be a list of mutator names.');
   if(typeof macro.zoom!=='boolean') throw new Error('Macro zoom must be true or false.');
   if(typeof macro.lookDown!=='boolean') throw new Error('Macro lookDown must be true or false.');
   macro.cameraRotation=Number(macro.cameraRotation??0);
@@ -142,7 +148,12 @@ function sendRunAction(){
   let macro;
   try{macro=readSelectedMacro()}catch(error){statusEl.textContent='Macro error: '+error.message;return}
   isRunning=true; playBtn.textContent='Stop (F8)'; playBtn.style.background='#ed4245'; statusEl.textContent='Start pressed';
-  try{chrome.webview.hostObjects.sync.RunCamera(macro.reset,macro.lookDown,macro.zoom,macro.speed,macro.mutator,JSON.stringify(macro.entries),macro.autoSellEnabled===true||macro.autoSellEnabled===1||macro.autoSellEnabled==='true',Math.max(0,Math.floor(Number(macro.autoSellSeconds)||0)),macro.cameraRotation,macro.mode,JSON.stringify(macro.raidMaps||[]),JSON.stringify(macro.raidLookDown||[]),macro.dieAfterMapChange,macro.readyBeforePlacement)}catch(e){isRunning=false;playBtn.textContent='Start (F8)';playBtn.style.background='';statusEl.textContent='Start unavailable: '+e.message+' (use F8)'}
+  let result;
+  try{result=chrome.webview.hostObjects.sync.RunCamera(macro.reset,macro.lookDown,macro.zoom,macro.speed,macro.mutator,JSON.stringify(macro.entries),macro.autoSellEnabled===true||macro.autoSellEnabled===1||macro.autoSellEnabled==='true',Math.max(0,Math.floor(Number(macro.autoSellSeconds)||0)),macro.cameraRotation,macro.mode,JSON.stringify(macro.raidMaps||[]),JSON.stringify(macro.raidLookDown||[]),macro.dieAfterMapChange,macro.readyBeforePlacement,JSON.stringify(macro.mutatorPriority||[]))}catch(e){result='Start unavailable: '+e.message+' (use F8)'}
+  // Status messages only carry progress, so a refused start comes back as the return value.
+  if(result==='Started')return;
+  if(result==='Already running'){statusEl.textContent=result;return}
+  isRunning=false;playBtn.textContent='Start (F8)';playBtn.style.background='';statusEl.textContent=result||'Start failed';
 }
 // The click handler below is the single toggle path.  Stopping on
 // pointer-down set isRunning false before the following click arrived, which
@@ -150,7 +161,8 @@ function sendRunAction(){
 playBtn.addEventListener('click',sendRunAction);
 document.getElementById('editorBtn').addEventListener('click',()=>{try{chrome.webview.hostObjects.sync.OpenEditor()}catch(e){statusEl.textContent='Editor unavailable: '+e.message}});
 document.getElementById('settingsBtn').addEventListener('click',()=>{try{chrome.webview.hostObjects.sync.OpenSettings()}catch(e){statusEl.textContent='Settings unavailable: '+e.message}});
-function notifyContentSize(){try{const h=Math.ceil(Math.max(document.body.scrollHeight,document.documentElement.scrollHeight));chrome.webview.hostObjects.sync.ResizeWindow(h)}catch(e){}}
+// Report the panel's own height: the document is never shorter than the window, so measuring it could only grow the window.
+function notifyContentSize(){try{const h=Math.ceil(document.querySelector('.panel').getBoundingClientRect().height);chrome.webview.hostObjects.sync.ResizeWindow(h)}catch(e){}}
 window.addEventListener('load',()=>{notifyContentSize();refreshMacroList();
   // The macro list only changes when the editor saves a file, and each refresh
   // is a synchronous host call that has to wait for the script (which cannot
@@ -161,8 +173,8 @@ window.addEventListener('load',()=>{notifyContentSize();refreshMacroList();
   window.addEventListener('focus',refreshMacroList);
   document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshMacroList()});
   jsonList.addEventListener('mousedown',refreshMacroList);
-  jsonList.addEventListener('focus',refreshMacroList);}); new ResizeObserver(notifyContentSize).observe(document.body);
-if(window.chrome&&window.chrome.webview)window.chrome.webview.addEventListener('message',e=>{try{const m=typeof e.data==='string'?JSON.parse(e.data):e.data;if(m.type==='status'){statusEl.textContent=m.text;if(['Done','Stopped','Ready'].includes(m.text)||m.text.includes('not found')){isRunning=false;playBtn.textContent='Start (F8)';playBtn.style.background=''}else if(/^(Waiting for game|Roblox |Starting|Setting |Placing |Rotating |Upgrading |Selecting |Auto Sell |Selling |Game Ended |Found |Account )/.test(m.text)){isRunning=true;playBtn.textContent='Stop (F8)';playBtn.style.background='#ed4245'}}}catch(e){}});
+  jsonList.addEventListener('focus',refreshMacroList);}); new ResizeObserver(notifyContentSize).observe(document.querySelector('.panel'));
+if(window.chrome&&window.chrome.webview)window.chrome.webview.addEventListener('message',e=>{try{const m=typeof e.data==='string'?JSON.parse(e.data):e.data;if(m.type==='raidMap'){const map=Number(m.map);mapStatusEl.hidden=!(map>=1&&map<=4);mapStatusEl.textContent=mapStatusEl.hidden?'':'Map '+map}else if(m.type==='status'){statusEl.textContent=m.text;if(['Done','Stopped','Ready'].includes(m.text)||m.text.includes('not found')){isRunning=false;playBtn.textContent='Start (F8)';playBtn.style.background=''}else if(/^(Waiting for game|Roblox |Starting|Setting |Placing |Rotating |Upgrading |Selecting |Auto Sell |Selling |Game Ended |Found |Account )/.test(m.text)){isRunning=true;playBtn.textContent='Stop (F8)';playBtn.style.background='#ed4245'}}}catch(e){}});
 </script>
 </body>
 </html>

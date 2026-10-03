@@ -1,0 +1,76 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><title>Slop TD macro - Mutator Priority</title>
+<style>
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101214;color:#f4f4f5;font-family:Inter,Segoe UI,Arial,sans-serif}
+.priority{width:100%;height:100%;padding:8px;display:flex;flex-direction:column;gap:6px;overflow:hidden}
+h4{margin:0;padding:1px;text-align:center;font-size:10px;line-height:15px;color:#e8edf9}
+.hint{margin:-4px 0 0;text-align:center;font-size:10px;line-height:14px;color:#9aa3b2}
+button{min-width:0;border:0;border-radius:2px;padding:6px 7px;background:#212834;color:#fff;font-weight:700;font-size:11px;line-height:16px;cursor:pointer;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+button:hover{background:#212834}button:disabled{opacity:.45;cursor:default}
+.list{border:1px solid #555;background:#0d0f13;padding:7px;display:flex;flex-direction:column;gap:5px;overflow-y:auto;min-height:0;flex:1}
+.list button{text-align:left}.list button.selected{background:#5865f2}
+.arrows{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:5px}
+.save{background:#5865f2}.save:hover{background:#6874ff}
+</style></head><body><main class="priority">
+<h4>MUTATOR PRIORITY</h4>
+<p class="hint">The highest mutator on the vote screen gets the vote</p>
+<div class="list" role="listbox" aria-label="Mutator priority"></div>
+<div class="arrows"><button type="button" id="moveUp" aria-label="Move up">▲</button><button type="button" id="moveDown" aria-label="Move down">▼</button></div>
+<button type="button" class="save" id="saveExit">Save &amp; Exit</button>
+<script>
+document.addEventListener('contextmenu', (event) => event.preventDefault(), true);
+const list = document.querySelector('.list');
+let order = [];
+let selectedIndex = -1;
+function render() {
+  list.replaceChildren();
+  order.forEach((name, index) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = `${index + 1}. ${name}`;
+    button.classList.toggle('selected', index === selectedIndex);
+    button.setAttribute('aria-selected', index === selectedIndex ? 'true' : 'false');
+    button.addEventListener('click', () => {
+      selectedIndex = index;
+      render();
+    });
+    list.append(button);
+  });
+  document.getElementById('moveUp').disabled = selectedIndex <= 0;
+  document.getElementById('moveDown').disabled = selectedIndex < 0 || selectedIndex >= order.length - 1;
+}
+function move(step) {
+  const target = selectedIndex + step;
+  if (selectedIndex < 0 || target < 0 || target >= order.length) return;
+  [order[selectedIndex], order[target]] = [order[target], order[selectedIndex]];
+  selectedIndex = target;
+  render();
+  list.children[selectedIndex].scrollIntoView({block: 'nearest'});
+}
+window.loadPriority = () => {
+  try {
+    order = JSON.parse(chrome.webview.hostObjects.sync.GetMutatorPriority());
+  } catch (error) {
+    order = [];
+  }
+  selectedIndex = -1;
+  render();
+};
+document.getElementById('moveUp').addEventListener('click', () => move(-1));
+document.getElementById('moveDown').addEventListener('click', () => move(1));
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'ArrowUp' && event.key !== 'ArrowDown') return;
+  event.preventDefault();
+  move(event.key === 'ArrowUp' ? -1 : 1);
+});
+document.getElementById('saveExit').addEventListener('click', () => {
+  try {
+    const result = chrome.webview.hostObjects.sync.SaveMutatorPriority(JSON.stringify(order));
+    if (result !== 'Saved') alert(result || 'Mutator priority could not be saved');
+  } catch (error) {
+    alert(`Mutator priority could not be saved: ${error.message}`);
+  }
+});
+window.loadPriority();
+</script>
+</main></body></html>

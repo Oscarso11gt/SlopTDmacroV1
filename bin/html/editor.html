@@ -17,7 +17,7 @@ button.raid-zoom-locked.selected,button.raid-zoom-locked.selected:hover{backgrou
 </style></head><body><main class="editor">
 <div class="header"><input id="macroName" placeholder="Name" aria-label="Macro name"><button id="saveMacro">Save</button><button id="loadMacro">Load</button></div>
 <div class="body">
-<section class="column"><h4>MODES</h4><div class="actions"><button type="button" id="modeButton">CASUAL</button><button type="button" id="dieAfterMapChange" class="raid-only" aria-pressed="false" title="Leave the round through Roblox Settings when the next raid map appears" hidden>Die After Map Change</button><button type="button" id="readyBeforePlacement" class="raid-only" aria-pressed="false" title="On a new raid map, press READY after the reset and camera rituals, before placing units" hidden>Ready Before Placement</button></div><h4>MUTATOR</h4><div class="actions"><button data-selection-group="mutator" data-mutator="Speedrun">Mutator 1</button><button data-selection-group="mutator" data-mutator="Tiny Slop Blackout">Mutator 2</button><button data-selection-group="mutator" data-mutator="Mutator 3">Mutator 3</button><button data-selection-group="mutator" data-mutator="No Mutator">No Mutator</button></div></section>
+<section class="column"><h4>MODES</h4><div class="actions"><button type="button" id="modeButton">CASUAL</button><button type="button" id="dieAfterMapChange" class="raid-only" aria-pressed="false" title="Leave the round through Roblox Settings when the next raid map appears" hidden>Die After Map Change</button><button type="button" id="readyBeforePlacement" class="raid-only" aria-pressed="false" title="On a new raid map, press READY after the reset and camera rituals, before placing units" hidden>Ready Before Placement</button></div><h4>MUTATOR</h4><div class="actions"><button type="button" id="mutatorPriority">Priority</button><button type="button" id="noMutator" title="Always vote for No Mutator">No Mutator</button></div></section>
 <section class="canvas"><h4>PLACEMENT</h4><div class="placement-list" role="listbox" aria-label="Placement items"></div><div class="map-row" id="mapRow" hidden><button type="button" id="fetchMap">Fetch Map</button><button type="button" id="cycleMap" aria-label="Selected raid map: Map 1">Map 1</button></div></section>
 <section class="panel"><h4>RITUALS</h4><div class="actions ritual-actions"><button data-toggle-group="rituals">Zoom</button><button data-toggle-group="rituals">Look Down</button><div class="rotation-row"><select id="cameraRotation" class="ritual-rotation" aria-label="Camera rotation"><option value="0">Rotation 0°</option><option value="90">Rotation 90°</option><option value="180">Rotation 180°</option><option value="270">Rotation 270°</option></select><button type="button" id="addRotation">Add</button></div></div><button class="replicate-button" type="button">Replicate</button><h4>SPEED</h4><button data-cycle-group="speed" data-cycle-max="5">1x</button><h4>UNIT SELECTION</h4><div class="unit-grid"><button data-selection-group="unit-selection">1</button><button data-selection-group="unit-selection">2</button><button data-selection-group="unit-selection">3</button><button data-selection-group="unit-selection">4</button><button data-selection-group="unit-selection">5</button><button data-selection-group="unit-selection">6</button></div><h4>UPGRADE</h4><div class="actions upgrade-actions"><button data-selection-group="upgrade">Yes</button><button data-selection-group="upgrade">No</button><button type="button" data-existing-action="Upgrade">Upgrade</button><button type="button" data-existing-action="Sell">Sell</button></div><h4>AUTO SELL</h4><div class="sell-row"><input id="autoSellSeconds" class="coord-input" aria-label="Auto sell seconds" placeholder="Seconds" type="number" min="1" step="1" value="0"><label class="auto-add sell-toggle" title="Auto Sell"><input id="autoSellEnabled" type="checkbox" aria-label="Auto Sell"></label></div></section>
 </div><div class="footer"><button class="set-window-button" type="button">Set window</button><input id="coordX" class="coord-input" aria-label="X coordinate" placeholder="X" type="number" min="0" step="1" value="0"><input id="coordY" class="coord-input" aria-label="Y coordinate" placeholder="Y" type="number" min="0" step="1" value="0"><button class="add-button">Add</button><button class="delete-button">Delete</button><button class="upgrade-button">Update</button><label class="auto-add" title="Automatically add a placement when C captures coordinates"><input id="autoAdd" type="checkbox" aria-label="Automatic placement"></label></div>
@@ -121,10 +121,38 @@ function selectionText(group) {
   const button = document.querySelector(`button[data-selection-group="${group}"].selected`);
   return button ? button.textContent : '';
 }
-function selectedMutator() {
-  const button = document.querySelector('button[data-selection-group="mutator"].selected');
-  return button ? button.dataset.mutator : 'No Mutator';
+// Priority: the macro reads the vote cards and votes for whichever shown mutator is highest in the list.
+// No Mutator: it always votes for the No Mutator card. The highlighted button is the one in use.
+const MUTATORS = ['Armored Slop', 'Blackout', 'Boss Rush', 'Brainrot', 'Gigantism', 'Regeneration', 'Speedrun', 'Tiny Slop'];
+let mutatorPriority = [...MUTATORS];
+let noMutator = true;
+function updateMutatorButtons() {
+  for (const [id, selected] of [['mutatorPriority', !noMutator], ['noMutator', noMutator]]) {
+    const button = document.getElementById(id);
+    button.classList.toggle('selected', selected);
+    button.setAttribute('aria-pressed', selected ? 'true' : 'false');
+  }
+  document.getElementById('mutatorPriority').title = `Vote order: ${mutatorPriority.join(' > ')}`;
 }
+window.applyMutatorPriority = (list) => {
+  const known = Array.isArray(list) ? list.filter((name, index) => MUTATORS.includes(name) && list.indexOf(name) === index) : [];
+  mutatorPriority = [...known, ...MUTATORS.filter((name) => !known.includes(name))];
+  updateMutatorButtons();
+};
+window.applyMutatorPriority(mutatorPriority);
+document.getElementById('noMutator').addEventListener('click', () => {
+  noMutator = true;
+  updateMutatorButtons();
+});
+document.getElementById('mutatorPriority').addEventListener('click', () => {
+  noMutator = false;
+  updateMutatorButtons();
+  try {
+    chrome.webview.hostObjects.sync.OpenMutatorPriority(JSON.stringify(mutatorPriority));
+  } catch (error) {
+    showIssue(`Mutator priority could not open: ${error.message}`);
+  }
+});
 function showIssue(message) {
   try {
     chrome.webview.hostObjects.sync.ShowEditorIssue(message);
@@ -288,8 +316,7 @@ document.getElementById('fetchMap').addEventListener('click', () => {
   button.disabled = true;
   button.textContent = 'Fetching...';
   try {
-    const cameraRotation = Number(document.getElementById('cameraRotation').value || '0');
-    const result = chrome.webview.hostObjects.sync.FetchRaidMap(JSON.stringify(raidLookDown), cameraRotation);
+    const result = chrome.webview.hostObjects.sync.FetchRaidMap(JSON.stringify(raidLookDown), 0);
     const mapNumber = Number(result);
     if (!Number.isInteger(mapNumber) || mapNumber < 1 || mapNumber > raidMaps.length) {
       showIssue(result || 'Raid map could not be identified');
@@ -343,7 +370,7 @@ document.querySelector('.replicate-button').addEventListener('click', () => {
   const cameraRotation = Number(document.getElementById('cameraRotation').value || '0');
   try {
     const result = macroMode === 'Raids'
-      ? chrome.webview.hostObjects.sync.ReplicateRituals(zoom, lookDown, cameraRotation, macroMode)
+      ? chrome.webview.hostObjects.sync.ReplicateRituals(zoom, lookDown, 0, macroMode)
       : chrome.webview.hostObjects.sync.ReplicateRituals(zoom, lookDown, cameraRotation);
     if (result !== 'Replicated') showIssue(result || 'Ritual replication failed');
   } catch (error) {
@@ -362,7 +389,8 @@ function collectMacro() {
     mode: macroMode,
     dieAfterMapChange: macroMode === 'Raids' && dieAfterMapChange,
     readyBeforePlacement: macroMode === 'Raids' && readyBeforePlacement,
-    mutator: selectedMutator(),
+    noMutator: noMutator,
+    mutatorPriority: mutatorPriority,
     speed: Number(document.querySelector('[data-cycle-group="speed"]').dataset.value || '1'),
     // The launcher still accepts this legacy field.  Multi-account controls
     // are no longer shown, so editor-created macros always use one account.
@@ -383,13 +411,13 @@ window.applyMacro = (macro) => {
   raidLookDown = [0, 1, 2, 3].map((index) => Array.isArray(macro.raidLookDown) && typeof macro.raidLookDown[index] === 'boolean'
     ? macro.raidLookDown[index] : casualLookDownEnabled);
   document.getElementById('cameraRotation').value = '0';
-  document.querySelectorAll('[data-selection-group="mutator"]').forEach((button) => {
-    const legacyMutators = {'Armored Slop':'Tiny Slop Blackout','Boss Rush':'Mutator 3'};
-    const mutator = legacyMutators[macro.mutator] || macro.mutator || 'No Mutator';
-    const selected = button.dataset.mutator === mutator;
-    button.classList.toggle('selected', selected);
-    button.setAttribute('aria-selected', selected ? 'true' : 'false');
-  });
+  // Older macros named a single mutator: No Mutator stays No Mutator, a real mutator name tops the priority.
+  // Lists saved before the No Mutator button meant No Mutator when they ranked it first.
+  const hasPriority = Array.isArray(macro.mutatorPriority);
+  noMutator = hasPriority
+    ? macro.noMutator === true || (macro.noMutator === undefined && macro.mutatorPriority[0] === 'No Mutator')
+    : (macro.mutator ?? 'No Mutator') === 'No Mutator';
+  window.applyMutatorPriority(hasPriority ? macro.mutatorPriority : [macro.mutator]);
   const cycles = [
     ['speed', 5, macro.speed]
   ];
