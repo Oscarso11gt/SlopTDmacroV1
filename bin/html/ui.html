@@ -31,7 +31,7 @@ button.secondary:hover{background:#2a3544}
     <button id="editorBtn" class="secondary">Editor</button>
     <button id="settingsBtn" class="secondary">Settings</button>
   </div>
-    <div class="version">v1.13</div>
+    <div class="version">v1.14</div>
 </div>
 <script>
 document.addEventListener('contextmenu',(event)=>event.preventDefault(),true);
@@ -102,7 +102,7 @@ function readSelectedMacro(){
   if(typeof macro.lookDown!=='boolean') throw new Error('Macro lookDown must be true or false.');
   macro.cameraRotation=Number(macro.cameraRotation??0);
   if(![0,90,180,270].includes(macro.cameraRotation)) throw new Error('Macro cameraRotation must be 0, 90, 180 or 270.');
-  if(!Number.isInteger(macro.speed)||macro.speed<1||macro.speed>5) throw new Error('Macro speed must be an integer from 1 to 5.');
+  if(!Number.isInteger(macro.speed)||macro.speed<1||macro.speed>6) throw new Error('Macro speed must be an integer from 1 to 6.');
   // `robloxAccounts` is a retired setting.  Older macros may contain it, but
   // editor-created macros since its removal do not, so use the only supported
   // value when it is absent.
